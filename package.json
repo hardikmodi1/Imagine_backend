@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "SET NODE_ENV=development&&nodemon starter.js",
-    "test": "SET NODE_ENV=test&&jest"
+    "test": "SET NODE_ENV=test&&jest --watch"
   },
   "author": "",
   "license": "ISC",
@@ -13,10 +13,17 @@
     "babel-polyfill": "^6.26.0",
     "bcryptjs": "^2.4.3",
     "express": "^4.16.3",
+    "graphql": "^0.13.2",
     "graphql-import": "^0.6.0",
     "graphql-request": "^1.8.2",
+    "graphql-tools": "^3.1.1",
     "graphql-yoga": "^1.16.1",
-    "mongoose": "^5.2.9"
+    "ioredis": "^4.0.0",
+    "mongoose": "^5.2.9",
+    "node-fetch": "^2.2.0",
+    "sparkpost": "^2.1.2",
+    "uuid": "^3.3.2",
+    "yup": "^0.26.2"
   },
   "devDependencies": {
     "babel-preset-env": "^1.7.0",
