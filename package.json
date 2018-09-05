@@ -5,14 +5,17 @@
   "main": "index.js",
   "scripts": {
     "start": "SET NODE_ENV=development&&nodemon starter.js",
-    "test": "SET NODE_ENV=test&&jest --watch"
+    "test": "SET NODE_ENV=test&&jest --watch --runInBand"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
     "babel-polyfill": "^6.26.0",
     "bcryptjs": "^2.4.3",
+    "connect-redis": "^3.3.3",
     "express": "^4.16.3",
+    "express-session": "^1.15.6",
     "graphql": "^0.13.2",
     "graphql-import": "^0.6.0",
     "graphql-request": "^1.8.2",

@@ -6,8 +6,12 @@ import {GraphQLServer} from 'graphql-yoga';
 import mongoose from 'mongoose';
 import * as path from 'path';
 var Redis = require('ioredis');
+import session from 'express-session';
+import connectRedis from 'connect-redis';
 
 import User from './models/User';
+
+const RedisStore=connectRedis(session);
 
 export const startServer = async () => {
 	const folders=fs.readdirSync(path.join(__dirname,"./modules"));
@@ -25,30 +29,45 @@ export const startServer = async () => {
 		schema:mergeSchemas({schemas}),
 		context:({request})=>({
 			redis,
-			url: request.protocol+"://"+request.get("host")
+			url: request.protocol+"://"+request.get("host"),
+			session: request.session
 		})
 	});
+
+	server.express.use(
+		session({
+			store: new RedisStore({
+				client: redis
+			}),
+			name: "qid",
+			secret: "jayswaminarayan",
+			resave: false,
+			saveUninitialized: false,
+			cookie:{
+				httpOnly: true,
+				secure: process.env.NODE_ENV==="production",
+				maxAge: 1000*60*60*24*7
+			}
+		})
+	);
+
+	const cors={
+		credentials: true,
+		origin: process.env.NODE_ENV==="test" ? "*" : "http://localhost:3000"
+	}
 
 	server.express.get("/confirm/:id",async (req,res)=>{
 		const {id}=req.params;
 		const userId=await redis.get(id);
 		if(userId){
-			User.findById(userId).select('confirmed').exec(function(err,user){
-				if(err){
-					res.send("not ok");
-				}
+			const user=await User.findById(userId);
 				if(!user){
 					res.send("not ok");
 				}
 				user.confirmed=true;
-				user.save(function(err){
-					if(err){
-						res.send("not ok");
-					}
-					redis.del(id);
-					res.send("ok");
-				})
-			})
+				await user.save();
+				await redis.del(id);
+				res.send("ok");
 		}
 		else{
 			res.send("not ok");
@@ -67,7 +86,7 @@ export const startServer = async () => {
 		}
 	});
 	const p=process.env.NODE_ENV==='test' ? 0 : 4000;
-	const app = await server.start({port : process.env.NODE_ENV==='test' ? 0 : 4000 });
+	const app = await server.start({cors,port : process.env.NODE_ENV==='test' ? 0 : 4000 });
 	console.log('Serevr running on localhost:'+p);
 	return app;
 }
