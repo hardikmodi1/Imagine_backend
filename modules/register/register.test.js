@@ -1,5 +1,6 @@
 import {request} from 'graphql-request';
 import 'babel-polyfill';
+import axios from 'axios';
 // import mongoose from 'mongoose';
 var Redis = require('ioredis');
 import fetch from 'node-fetch';
@@ -9,9 +10,11 @@ import {createConfirmEmailLink} from '../../utils/createConfirmEmailLink';
 import {duplicateEmail,emailNotLongEnough,invalidEmail,passwordNotLongEnough} from './errorMessages';
 import User from '../../models/User';
 import {startServer} from '../../startServer';
+import {invalidLogin,emailNotVerified,invalidPassword} from '../login/errorMessages';
 
 let getHost=()=>'';
 let userId="";
+let checkId="";
 const redis=new Redis();
 
 beforeAll(async()=>{
@@ -23,6 +26,12 @@ beforeAll(async()=>{
 	user.password="jklamnlcndkcn";
 	await user.save();
 	userId=user._id;
+	var getCurrentUser=new User();
+	getCurrentUser.email="checking@checking.com";
+	getCurrentUser.password="checking";
+	getCurrentUser.confirmed=true;
+	getCurrentUser.save();
+	checkId=getCurrentUser.id;
 })
 
 const email="hari@hardik.com";
@@ -36,6 +45,22 @@ const mutation=(e,p)=>`
 		}
 	}
 `;
+
+const loginMutation=(e,p)=>`
+	mutation{
+		login(email: "${e}", password: "${p}"){
+			path
+			message
+		}
+	}
+`;
+
+const meQuery=`{
+	me{
+		id
+		email
+	}
+}`
 
 describe("Check for createConfirmEmailLink",async()=>{
 	it("Make sure createConfirmEmailLink function is working",async()=>{
@@ -137,5 +162,80 @@ describe("Register user", async () => {
 				}
 			]
 		});
+	});
+});
+
+describe("Checking Login functionality",()=>{
+	it("email not found in database",async ()=>{
+		const response=await request(getHost(),loginMutation("no@no.com","whatever"));
+		expect(response).toEqual({
+			login: [{
+				path: "email",
+				message: invalidLogin
+			}]
+		})
+	});
+
+	it("email not confirmed",async()=>{
+		const response=await request(getHost(),mutation("no@no.com","whatever"));
+		const response2=await request(getHost(),loginMutation("no@no.com","whatever"));
+		expect(response2).toEqual({
+			login: [{
+				path: "email",
+				message: emailNotVerified
+			}]
+		});
+		// User.findOne({email:"no@no.com"}).select('confirmed').exec(function(err,user){
+		// 	user.confirmed=true;
+		// 	user.save(function(err){
+		// 		request(getHost(),loginMutation("no@no.com","whatever1")).then((response3)=>{
+		// 			expect(response3).toEqual({
+		// 				login: [{
+		// 					path: "password",
+		// 					message: invalidPassword
+		// 				}]
+		// 			});
+		// 		});
+		// 	})
+		// })
+		// User.findOne({email:"no@no.com"}).select('confirmed').exec(function(err,user){
+		// 	user.confirmed=true;
+		// 	user.save(function(err){
+		// 		request(getHost(),loginMutation("no@no.com","whatever")).then((response4)=>{
+		// 			expect(response4).toBeNull();
+		// 		});
+		// 	})
+		// })
+	});
+});
+
+describe("Me query",()=>{
+
+	it("return null if no cookie",async ()=>{
+		const response=await axios.post(
+			getHost(),
+			{
+				query:meQuery
+			}
+		);	
+		expect(response.data.data.me).toBeNull();
+	});
+
+	it("get current user back",async ()=>{
+		await axios.post(
+			getHost(),
+			{
+				query: loginMutation("checking@checking.com","checking")
+			},
+			{
+				withCredentials: true
+			}
+		);
+		const response2=await axios.post(getHost(),{query:meQuery},{withCredentials:true});	
+		console.log(response2.data);
+		console.log(response2.data);
+		console.log(response2.status);
+		expect(response2.data.data.me.email).toEqual("checking@checking.com");
+		expect(response2.data.data.me.id).toEqual(checkId);
 	});
 });

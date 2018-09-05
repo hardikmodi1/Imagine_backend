@@ -46,10 +46,10 @@ export const resolvers={
 				];
 			}
 
-			const hashedPassword = await bcrypt.hash(password,10);
+			// const hashedPassword = await bcrypt.hash(password,10);
 			var user = new User();
 			user.email = email;
-			user.password = hashedPassword;
+			user.password = password;
 			await user.save();
 			const link = await createConfirmEmailLink(url,user._id,redis);
 			if(process.env.NODE_ENV!=='test'){
