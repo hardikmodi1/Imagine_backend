@@ -4,7 +4,13 @@ import 'babel-polyfill';
 import User from '../../models/User';
 import {createConfirmEmailLink} from '../../utils/createConfirmEmailLink';
 import {sendEmail} from '../../utils/sendEmail';
-import {invalidLogin,errorFinding,invalidPassword,emailNotVerified} from './errorMessages';
+import {
+	invalidLogin,
+	errorFinding,
+	invalidPassword,
+	emailNotVerified,
+	forgotPassword
+} from './errorMessages';
 
 
 export const resolvers={
@@ -13,8 +19,9 @@ export const resolvers={
 	},
 
 	Mutation: {
-		login: async (_, {email,password},{session})=>{
-			const user=await User.findOne({email:email}).select('email password confirmed')
+		login: async (_, {email,password},{session,redis,req})=>{
+			const user=await User.findOne({email:email}).select('email password confirmed forgotPasswordLocked')
+				
 				if(!user){
 					return  [{
 						path: "email",
@@ -27,6 +34,14 @@ export const resolvers={
 						message: emailNotVerified
 					}]
 				}
+
+				if(user.forgotPasswordLocked){
+					return [{
+						path: "email",
+						message: forgotPassword
+					}]
+				}
+
 				var validPassword=await bcrypt.compare(password,user.password);
 				console.log(validPassword);
 				if(!validPassword){
@@ -37,6 +52,9 @@ export const resolvers={
 				}
 
 				session.userId=user.id;
+				if(req.sessionID){
+					await redis.lpush(`userSids:${user.id}`,req.sessionID);
+				}
 				await session.save(function(err){
 					console.log(err);
 				});
