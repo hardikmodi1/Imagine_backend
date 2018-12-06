@@ -53,7 +53,7 @@ export const resolvers={
 			await user.save();
 			const link = await createConfirmEmailLink(url,user._id,redis);
 			if(process.env.NODE_ENV!=='test'){
-				await sendEmail(email,link);
+				// await sendEmail(email,link);
 			}
 			return null;
 		}

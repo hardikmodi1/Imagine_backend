@@ -6,7 +6,7 @@ import * as bcrypt from 'bcryptjs';
 var UserSchema=new Schema({
 	email:{type:String,lowercase:true,default:null},
 	password:{type:String,default:null},
-	confirmed:{type:Boolean,default:false},
+	confirmed:{type:Boolean,default:true},
 	forgotPasswordLocked:{type:Boolean,default:false},
 	twitterId:{type:String,default:null}
 });
