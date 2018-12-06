@@ -143,7 +143,7 @@ export const startServer = async () => {
 	server.express.get('/auth/twitter/callback',passport.authenticate('twitter',{session:false}),
 		function(req,res){
 			req.session.userId=req.user.id;
-			res.redirect("/");
+			res.redirect("http://localhost:3000");
 		}
 	);
 
