@@ -1,0 +1,1 @@
+export const PUBSUB_NEW_ANSWER = 'PUBSUB_NEW_ANSWER'

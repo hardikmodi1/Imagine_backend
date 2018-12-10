@@ -1,0 +1,21 @@
+type result{
+	link: [String!]!
+	image: [String!]!
+	text: [String!]!
+}
+
+type news{
+	thumbnail: [String!]!
+	link: [String!]!
+	heading: [String!]!
+	para: [String!]!
+}
+
+type Mutation{
+	youtubesearch(query:String): [result!]
+	news: [news!]
+}
+
+type Query{
+	bye10: String
+}
