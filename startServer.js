@@ -2,7 +2,7 @@ import 'babel-polyfill';
 import * as fs from 'fs';
 import {importSchema} from 'graphql-import';
 import {mergeSchemas,makeExecutableSchema} from 'graphql-tools';
-import {GraphQLServer} from 'graphql-yoga';
+import {GraphQLServer, PubSub} from 'graphql-yoga';
 import mongoose from 'mongoose';
 import * as path from 'path';
 var Redis = require('ioredis');
@@ -14,6 +14,7 @@ import passport from 'passport';
 import {Strategy} from 'passport-twitter';
 
 import User from './models/User';
+import {userLoader} from './loaders/UserLoader';
 
 const RedisStore=connectRedis(session);
 
@@ -27,15 +28,21 @@ export const startServer = async () => {
 		schemas.push(makeExecutableSchema({resolvers,typeDefs}));
 	});
 
-	const redis=new Redis();
+	// const redis=new Redis('redis://redis-19252.c1.ap-southeast-1-1.ec2.cloud.redislabs.com:19252');
+	const redis = Redis.createClient({
+		url: 'redis://redis-19252.c1.ap-southeast-1-1.ec2.cloud.redislabs.com:19252'
+	})
+	const pubsub = new PubSub();
 
 	const server=new GraphQLServer({
 		schema:mergeSchemas({schemas}),
 		context:({request})=>({
 			redis,
-			url: request.protocol+"://"+request.get("host"),
-			session: request.session,
-			req: request
+			url: request ? request.protocol+"://"+request.get("host") : '',
+			session: request ? request.session : undefined,
+			req: request,
+			userLoader: userLoader(),
+			pubsub
 		})
 	});
 
@@ -68,9 +75,13 @@ export const startServer = async () => {
 		})
 	);
 
+	// const cors={
+	// 	credentials: true,
+	// 	origin: process.env.NODE_ENV==="test" ? "*" : "http://localhost:3000"
+	// }
 	const cors={
 		credentials: true,
-		origin: process.env.NODE_ENV==="test" ? "*" : "http://localhost:3000"
+		origin: "*"
 	}
 
 	server.express.get("/confirm/:id",async (req,res)=>{
@@ -92,16 +103,20 @@ export const startServer = async () => {
 
 	})
 
-	await mongoose.connect('mongodb://localhost:27017/boilerplate',{ useNewUrlParser: true },function(err){
-		if(err){
-			console.log(err);
-			console.log("Error connecting database");
-		}
-		else{
-			console.log(process.env.NODE_ENV);
-			console.log("Connected successfully");
-		}
-	});
+	// const db = await mongoose.connect('mongodb://localhost:27017/boilerplate',{ useNewUrlParser: true });
+	const db = await mongoose.connect('mongodb://hardik:hardik97122@ds129904.mlab.com:29904/farmer',{ useNewUrlParser: true });
+	
+	var Scheduler = require('mongo-scheduler')
+	// var scheduler = new Scheduler('mongodb://localhost:27017/boilerplate', {'pollInterval': 1 })
+	// var event = {name: 'breakfast', collection: 'users', data: 'Fry'}
+	// scheduler.schedule(event)
+	// scheduler.on('breakfast', function() {
+	// 	console.log("hello")
+	// 	// Assuming the document {ingredients: "Bacon and Eggs"} is in the meals collection
+	// 	// prints "Fry the Bacon and Eggs"
+	//   })
+
+
 
 	passport.use(new Strategy({
 		consumerKey:'MTlVEEN3YDO1hfVPkk0GWnR61',

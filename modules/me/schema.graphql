@@ -1,8 +1,10 @@
 # import Error from '../../shared.graphql'
+# import question from '../question/schema.graphql'
 
 type User{
 	id: ID!
 	email: String!
+	questions: [question!]!
 }
 
 type Query{

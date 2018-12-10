@@ -1,0 +1,49 @@
+# import Error from '../../shared.graphql'
+# import User from '../me/schema.graphql'
+
+type question{
+    Question: String
+    Explanation: String
+    _id: String
+    date: String
+    user: User
+}
+
+type search{
+    Question: String
+    _id: String
+}
+
+type Query{
+	questions: [question!]! 
+    answers: [String!]!
+    searchQuestionWithAnswer(questionid: String!): answer
+}
+
+type singleanswer{
+    _id: String
+    date: String
+    Answer: String
+    Userid: String
+    Questionid: String
+    user: User
+}
+
+type answer{
+    Question: String
+    Explanation: String
+    date: String
+    _id: String
+    user: User
+    answers: [singleanswer]
+}
+
+type Subscription{
+    newAnswer(questionid: String!): singleanswer!
+}
+
+type Mutation{
+	addQuestion(question: String!, explanation: String): [Error!]
+	addAnswer(questionid: String!, answer: String!): Boolean!
+    searchQuestion(searchText: String!): [search!]
+}
