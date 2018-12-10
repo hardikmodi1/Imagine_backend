@@ -107,14 +107,14 @@ export const startServer = async () => {
 	const db = await mongoose.connect('mongodb://hardik:hardik97122@ds129904.mlab.com:29904/farmer',{ useNewUrlParser: true });
 	
 	var Scheduler = require('mongo-scheduler')
-	// var scheduler = new Scheduler('mongodb://localhost:27017/boilerplate', {'pollInterval': 1 })
-	// var event = {name: 'breakfast', collection: 'users', data: 'Fry'}
-	// scheduler.schedule(event)
-	// scheduler.on('breakfast', function() {
-	// 	console.log("hello")
-	// 	// Assuming the document {ingredients: "Bacon and Eggs"} is in the meals collection
-	// 	// prints "Fry the Bacon and Eggs"
-	//   })
+	var scheduler = new Scheduler('mongodb://hardik:hardik97122@ds129904.mlab.com:29904/farmer', {'pollInterval': 1000 })
+	var event = {name: 'breakfast', collection: 'users', data: 'Fry'}
+	scheduler.schedule(event)
+	scheduler.on('breakfast', function() {
+		console.log("hello")
+		// Assuming the document {ingredients: "Bacon and Eggs"} is in the meals collection
+		// prints "Fry the Bacon and Eggs"
+	  })
 
 
 
