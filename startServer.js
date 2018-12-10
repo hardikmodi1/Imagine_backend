@@ -69,7 +69,7 @@ export const startServer = async () => {
 			saveUninitialized: false,
 			cookie:{
 				httpOnly: true,
-				secure: process.env.NODE_ENV==="production",
+				secure: true,
 				maxAge: 1000*60*60*24*7
 			}
 		})
@@ -162,8 +162,8 @@ export const startServer = async () => {
 		}
 	);
 
-	const p=process.env.NODE_ENV==='test' ? 0 : 4000;
-	const app = await server.start({cors,port : process.env.NODE_ENV==='test' ? 0 : 4000 });
+	const p= 4000;
+	const app = await server.start({cors,port :  4000 });
 	console.log('Serevr running on localhost:'+p);
 	return app;
 }
