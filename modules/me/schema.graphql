@@ -1,10 +1,18 @@
 # import Error from '../../shared.graphql'
 # import question from '../question/schema.graphql'
 
+type not{
+	notification: String
+    date: String
+    userid: String
+    _id: String
+}
+
 type User{
 	id: ID!
 	email: String!
 	questions: [question!]!
+	nots: [not]
 }
 
 type Query{

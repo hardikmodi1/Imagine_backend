@@ -15,6 +15,7 @@ import {Strategy} from 'passport-twitter';
 
 import User from './models/User';
 import {userLoader} from './loaders/UserLoader';
+import j from './jobs/job1';
 
 const RedisStore=connectRedis(session);
 
@@ -28,19 +29,17 @@ export const startServer = async () => {
 		schemas.push(makeExecutableSchema({resolvers,typeDefs}));
 	});
 
-	// const redis=new Redis('redis://redis-19252.c1.ap-southeast-1-1.ec2.cloud.redislabs.com:19252');
-	const redis = Redis.createClient({
-		url: 'redis://redis-19252.c1.ap-southeast-1-1.ec2.cloud.redislabs.com:19252'
-	})
+	const redis=new Redis();
 	const pubsub = new PubSub();
 
 	const server=new GraphQLServer({
 		schema:mergeSchemas({schemas}),
-		context:({request})=>({
+		context:({request, response})=>({
 			redis,
 			url: request ? request.protocol+"://"+request.get("host") : '',
 			session: request ? request.session : undefined,
 			req: request,
+			res: response,
 			userLoader: userLoader(),
 			pubsub
 		})
@@ -69,19 +68,15 @@ export const startServer = async () => {
 			saveUninitialized: false,
 			cookie:{
 				httpOnly: true,
-				secure: true,
+				secure: process.env.NODE_ENV==="production",
 				maxAge: 1000*60*60*24*7
 			}
 		})
 	);
 
-	// const cors={
-	// 	credentials: true,
-	// 	origin: process.env.NODE_ENV==="test" ? "*" : "http://localhost:3000"
-	// }
 	const cors={
 		credentials: true,
-		origin: "*"
+		origin: process.env.NODE_ENV==="test" ? "*" : "http://localhost:3000"
 	}
 
 	server.express.get("/confirm/:id",async (req,res)=>{
@@ -103,20 +98,7 @@ export const startServer = async () => {
 
 	})
 
-	// const db = await mongoose.connect('mongodb://localhost:27017/boilerplate',{ useNewUrlParser: true });
-	const db = await mongoose.connect('mongodb://hardik:hardik97122@ds129904.mlab.com:29904/farmer',{ useNewUrlParser: true });
-	
-	var Scheduler = require('mongo-scheduler')
-	var scheduler = new Scheduler('mongodb://hardik:hardik97122@ds129904.mlab.com:29904/farmer', {'pollInterval': 1000 })
-	var event = {name: 'breakfast', collection: 'users', data: 'Fry'}
-	scheduler.schedule(event)
-	scheduler.on('breakfast', function() {
-		console.log("hello")
-		// Assuming the document {ingredients: "Bacon and Eggs"} is in the meals collection
-		// prints "Fry the Bacon and Eggs"
-	  })
-
-
+	const db = await mongoose.connect('mongodb://localhost:27017/boilerplate',{ useNewUrlParser: true });
 
 	passport.use(new Strategy({
 		consumerKey:'MTlVEEN3YDO1hfVPkk0GWnR61',
@@ -162,8 +144,14 @@ export const startServer = async () => {
 		}
 	);
 
-	const p= 4000;
-	const app = await server.start({cors,port :  4000 });
+	const p=process.env.NODE_ENV==='test' ? 0 : 4000;
+
+	const option={
+		cors,
+		port: p,
+  		bodyParserOptions: { limit: "50mb", type: "application/json" }
+	}
+	const app = await server.start(option);
 	console.log('Serevr running on localhost:'+p);
 	return app;
 }

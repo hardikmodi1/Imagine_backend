@@ -13,9 +13,8 @@ type news{
 
 type Mutation{
 	youtubesearch(query:String): [result!]
-	news: [news!]
 }
 
 type Query{
-	bye10: String
+	news: [news!]
 }
