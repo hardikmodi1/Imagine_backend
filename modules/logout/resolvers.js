@@ -8,7 +8,7 @@ export const resolvers={
 	},
 
 	Mutation: {
-		logout: async (_,__,{session,redis}) => {
+		logout: async (_,__,{session,redis,res}) => {
 			const {userId}=session;
 			if(userId){
 				const sessionIds=await redis.lrange(`userSids:${userId}`,0,-1);
@@ -17,6 +17,7 @@ export const resolvers={
 					promises.push(redis.del(`sess:${sessionIds[i]}`));
 				}
 				await Promise.all(promises);
+				res.clearCookie('qid');
 				return true;
 			}
 			return false;

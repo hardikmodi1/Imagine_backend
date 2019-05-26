@@ -1,12 +1,18 @@
 # import Error from '../../shared.graphql'
 # import User from '../me/schema.graphql'
 
+type User1{
+	_id: ID!
+	email: String!
+}
+
 type question{
     Question: String
     Explanation: String
     _id: String
     date: String
-    user: User
+    length: Int
+    user: User1
 }
 
 type search{
@@ -18,6 +24,7 @@ type Query{
 	questions: [question!]! 
     answers: [String!]!
     searchQuestionWithAnswer(questionid: String!): answer
+    questionByUser(userid: String!): [question]
 }
 
 type singleanswer{

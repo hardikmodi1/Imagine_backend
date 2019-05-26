@@ -15,7 +15,8 @@ const batchUsers = async (ids) => {
   users.forEach(u => {
     userMap[u.id] = u;
   });
-
+  
+  console.log(ids.map(id => userMap[id]))
   return ids.map(id => userMap[id]);
 };
 

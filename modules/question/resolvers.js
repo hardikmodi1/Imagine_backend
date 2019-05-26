@@ -11,7 +11,11 @@ import { PUBSUB_NEW_ANSWER } from './shared';
 export const resolvers={
 
     question: {
-        user: async ({ Userid }, _, { userLoader }) => userLoader.load(Userid)
+        user: ({ Userid }, _, { userLoader }) => userLoader.load(Userid),
+        length: async ({ _id }, _, __ ) => {
+            const answers = await Answer.find({Questionid: _id}).select('Userid');
+            return answers.length;
+        }
     },
 
     answer: {
@@ -42,6 +46,9 @@ export const resolvers={
         },
         searchQuestionWithAnswer: async (_, {questionid},__)=>{
             return await Question.findById(questionid);
+        },
+        questionByUser: async (_, {userid},__)=>{
+            return await Question.find({Userid: userid}).sort({date: -1});
         }
     },
     Mutation: {

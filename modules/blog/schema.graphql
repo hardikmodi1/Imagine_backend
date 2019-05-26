@@ -1,0 +1,33 @@
+# import Error from '../../shared.graphql'
+# import User from '../me/schema.graphql'
+
+type blog{
+    Blog: String
+    Title: String
+    _id: String
+    date: String
+    prefferedImage: String
+    user: User
+}
+
+type searchblog{
+    Blog: String
+    Title: String
+    date: String
+    prefferedImage: String
+    Userid: String
+    _id: String
+    user: User
+}
+
+type Query{
+    blogs: [blog!]!
+    singleBlog(blogid: String!): blog
+    blogByUser(userid: String!): [blog]
+    searchBlog(searchText: String!): [searchblog]
+}
+
+type Mutation{
+	addBlog(title: String!, blog: String): [Error!]
+    searchBlog(searchText: String!): [searchblog]
+}

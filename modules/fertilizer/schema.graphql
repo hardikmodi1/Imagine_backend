@@ -1,0 +1,34 @@
+# import Error from '../../shared.graphql'
+
+type info{
+    nitrogen: Float
+    phos: Float
+    potassium: Float
+    ph: Float
+    temp: Float
+    organ: Float
+    yield: Float
+}
+
+type fert{
+    _id: String!
+    date: String!
+}
+
+type notification{
+    notification: String
+    date: String
+    userid: String
+    _id: String
+}
+
+type Query{
+    SHCInfo(userid: String!): [info]
+    fertInfo(userid: String!): [fert]
+    notifications(userid: String!): [notification]
+}
+
+type Mutation{
+	addSHC(n: Float, p: Float, k: Float, ph: Float, temp: Float, organ: Float, yield1: Float): [Error!]
+	addFert: [Error!]
+}
